@@ -1,11 +1,7 @@
 import cv2
 import numpy as np
-import scipy
-from scipy.misc import imread
 import cPickle as pickle
-import random
 import os
-import matplotlib.pyplot as plt
 
 class Feature(object):
     def __init__(self, features_file_path='features.pck', images_path='./yelp_photos/photos/' ):
@@ -13,7 +9,7 @@ class Feature(object):
         self.images_path = images_path
 
     def get_feature_vector(self, image_path, vector_size=32):
-        image = imread(image_path, mode="RGB")
+        image = cv2.imread(image_path, cv2.IMREAD_COLOR)
         try:
             alg = cv2.KAZE_create()
             key_points = alg.detect(image) # All key points

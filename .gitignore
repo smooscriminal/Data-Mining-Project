@@ -1,2 +1,4 @@
 /dataset/*
 /yelp_photos/*
+.vscode/
+.DS_Store
