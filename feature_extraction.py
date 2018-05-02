@@ -3,11 +3,20 @@ import numpy as np
 import cPickle as pickle
 import os
 
+'''
+This object extracts the features from images in a given path. It then writes
+the features to a file named features.pck in the same location as this file if
+no value is passed in for features_file_path. Also processes the images in path
+./yelp_photos/photos/ by default if nothing is passed in for images_path.
+'''
 class Feature(object):
     def __init__(self, features_file_path='features.pck', images_path='./yelp_photos/photos/' ):
         self.features_file_path = features_file_path
         self.images_path = images_path
 
+    '''
+    Extracts the feature vector for one image
+    '''
     def get_feature_vector(self, image_path, vector_size=32):
         image = cv2.imread(image_path, cv2.IMREAD_COLOR)
         try:
@@ -25,6 +34,10 @@ class Feature(object):
             return None
         return descriptor
 
+    '''
+    Calls the get_feature_vector for all images specified in images_path and
+    writes to the file specified in features_file_path
+    '''
     def extract(self):
         files = [os.path.join(self.images_path, p) for p in sorted(os.listdir(self.images_path))]
 
