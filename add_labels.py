@@ -24,12 +24,15 @@ creates a new feature file with the labels. It takes a dictionary object as one
 of the parameters so it can search for the appropriate labels. Also takes a file_name
 which is the file the function will be reading from.
 '''
-def add_labels_to_features(lookup, file_name="features.pck"):
+def add_labels_to_features(lookup, limit_to, file_name="features.pck"):
     with open(file_name, "r") as fp_r, open("features_with_labels.csv", "w") as fp_w:
         for line in fp_r:
             values=line.split(",")
             key=(os.path.splitext(values[0])[0]).upper()
-            fp_w.write(line.strip()+","+lookup.get(key)+"\n")
+            label = lookup.get(key)
+            if limit_to.get(label) != None:
+                fp_w.write(line.strip()+","+label+"\n")
 
+extract = {"food": 1, "drink":2}
 lookup = get_labels()
-add_labels_to_features(lookup)
+add_labels_to_features(lookup, extract)
