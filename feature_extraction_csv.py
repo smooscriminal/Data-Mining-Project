@@ -10,7 +10,7 @@ no value is passed in for features_file_path. Also processes the images in path
 ./yelp_photos/photos/ by default if nothing is passed in for images_path.
 '''
 class Feature(object):
-    def __init__(self, features_file_path='features.pck', images_path='./yelp_photos/photos/' ):
+    def __init__(self, features_file_path='features.pck', images_path="./yelp_photos/yelp_photos/photos/" ):
         self.features_file_path = features_file_path
         self.images_path = images_path
 
@@ -41,16 +41,12 @@ class Feature(object):
     def extract(self):
         files = [os.path.join(self.images_path, p) for p in sorted(os.listdir(self.images_path))]
 
-        result = {}
-        fp = open(self.features_file_path, 'w')
-        for f in files:
-            print 'Extracting features from image %s' % f
-            name = f.split('/')[-1].lower()
-            result[name] = self.get_feature_vector(f)
-            fp.write(name+','+','.join(str(e) for e in result[name])+'\n')
-        
-        fp.close()
-
+        with open(self.features_file_path, 'w') as fp:
+            for f in files:
+                print 'Extracting features from image %s' % f
+                name = f.split('/')[-1].lower()
+                result = self.get_feature_vector(f)
+                fp.write(name+','+','.join(str(e) for e in result)+'\n')
 
 def run():
     featureExtraction = Feature()
