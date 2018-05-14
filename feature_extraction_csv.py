@@ -12,33 +12,35 @@ no value is passed in for features_file_path. Also processes the images in path
 ./yelp_photos/photos/ by default if nothing is passed in for images_path.
 '''
 class Feature(object):
-    def __init__(self, features_file_path='features.pck', images_path="./yelp_photos/yelp_photos/photos/" ):
+    def __init__(self, features_file_path='features.pck', images_path="./yelp_photos/yelp_photos/" ):
         self.features_file_path = features_file_path
         self.images_path = images_path
         max_number_img = 4000
         self.images = np.empty(shape=(max_number_img,2), dtype=object)
-        with open("./yelp_photos/yelp_photos/photos.json", "r") as fp_r:
-            index = 0
-            count_food = 0
-            count_drink = 0
-            for line in fp_r:
-                image_obj=json.loads(line)
-                if (image_obj["label"] == "food" and count_food > 1999 ):
-                    continue
-                elif (image_obj["label"] == "drink" and count_drink > 1999 ):
-                    continue
-                elif image_obj["label"] == "food":
-                    count_food = count_food + 1
-                elif image_obj["label"] == "drink":
-                    count_drink = count_drink + 1
-                else:
-                    continue
-                self.images[index][0] = image_obj["photo_id"]+".jpg"
-                self.images[index][1] = image_obj["label"]
-                if count_food > 1999 and count_drink > 1999:
-                    print "done"
-                    break
-                index = index + 1
+        try:
+            with open(images_path+"photos.json", "r") as fp_r:
+                index = 0
+                count_food = 0
+                count_drink = 0
+                for line in fp_r:
+                    image_obj=json.loads(line)
+                    if (image_obj["label"] == "food" and count_food > 1999 ):
+                        continue
+                    elif (image_obj["label"] == "drink" and count_drink > 1999 ):
+                        continue
+                    elif image_obj["label"] == "food":
+                        count_food = count_food + 1
+                    elif image_obj["label"] == "drink":
+                        count_drink = count_drink + 1
+                    else:
+                        continue
+                    self.images[index][0] = image_obj["photo_id"]+".jpg"
+                    self.images[index][1] = image_obj["label"]
+                    if count_food > 1999 and count_drink > 1999:
+                        break
+                    index = index + 1
+        except Exception as e:
+            print str(e)
     '''
     Extracts the feature vector for one image
     '''
@@ -78,22 +80,28 @@ class Feature(object):
         return desc
 
     def move_sample_set(self):
-        dir = './sample_data_set'
-        if (not os.path.exists(dir)):
-            os.makedirs(dir)
-        if (not os.path.exists(dir+'/photos')):
-            os.makedirs(dir+'/photos')
-        dir = dir + '/'
-        with open(dir+'photo_data.json','w') as fp:
-            for f, label in self.images:
-                photo = {}
-                photo["file_name"] = f
-                photo["label"] = label
-                copyfile(self.images_path + f, dir + '/photos/' + f)
-                print "copied image %s" % f
-                fp.write(json.dumps(photo)+'\n')
-        print "copy finished"
-        
+        try:
+            dir = './sample_data_set'
+            if (not os.path.exists(dir)):
+                os.makedirs(dir)
+            else:
+                return
+
+            if (not os.path.exists(dir+'/photos')):
+                os.makedirs(dir+'/photos')
+            dir = dir + '/'
+            with open(dir+'photos.json','w') as fp:
+                for f, label in self.images:
+                    photo = {}
+                    photo["photo_id"] = os.path.splitext(f)[0]
+                    photo["label"] = label
+                    copyfile(self.images_path + '/photos/' + f, dir + '/photos/' + f)
+                    print "copied image %s" % f
+                    fp.write(json.dumps(photo)+'\n')
+            print "copy finished"
+        except Exception as e:
+            print str(e)
+            
     '''
     Calls the get_feature_vector for all images specified in images_path and
     writes to the file specified in features_file_path
@@ -105,19 +113,20 @@ class Feature(object):
             for f, label in self.images:
                 if str(algorithm).upper() == 'KAZE':
                     print 'Extracting features from image %s using kaze' % f
-                    result = self.get_feature_vector_kaze(self.images_path + f)
+                    result = self.get_feature_vector_kaze(self.images_path + '/photos/' + f)
                     fp.write(f+','+','.join(str(e) for e in result)+","+label+'\n')
                 elif str(algorithm).upper() == 'SIFT':
                     print 'Extracting features from image %s using sift' % f
                     name = f.split('/')[-1].lower()
-                    result = self.get_feature_vector_sift(self.images_path + f)
+                    result = self.get_feature_vector_sift(self.images_path + '/photos/' + f)
                     fp.write(f+','+','.join(str(e) for e in result)+","+label+'\n')
-                    print "done"
+        print "Feature extraction finished"
 
 
 def run():
-    feature_extraction = Feature(features_file_path="KAZE.csv")
-    feature_extraction.move_sample_set()
-    # feature_extraction.extract(algorithm="KAZE")
-    # feature_extraction.extract(algorithm="SIFT", features_file_path="SIFT.csv")
+    create_sample_set = Feature()
+    create_sample_set.move_sample_set()
+    feature_extraction = Feature(features_file_path="KAZE.csv", images_path="./sample_data_set/")
+    feature_extraction.extract(algorithm="KAZE")
+    feature_extraction.extract(algorithm="SIFT", features_file_path="SIFT.csv")
 run()
